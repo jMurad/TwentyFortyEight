@@ -58,8 +58,8 @@ func (tfe *TwentyFortyEight) generate() {
 		}
 		save[mi] = ni
 
-		if (tfe.box)[ni][mi] == 0 {
-			(tfe.box)[ni][mi] = tfe.genRandValue()
+		if tfe.box[ni][mi] == 0 {
+			tfe.box[ni][mi] = tfe.genRandValue()
 			break
 		}
 	}
@@ -103,7 +103,7 @@ func (tfe *TwentyFortyEight) transposition() {
 		for i := 0; i < tfe.m; i++ {
 			tempbox[i] = make([]int, tfe.n)
 			for j := 0; j < tfe.n; j++ {
-				tempbox[i][j] = (tfe.box)[j][i]
+				tempbox[i][j] = tfe.box[j][i]
 			}
 		}
 		tfe.box = tempbox
@@ -137,31 +137,30 @@ func center(s string, w int) string {
 }
 
 func (tfe *TwentyFortyEight) showBox() {
-	tfe.score = 0
 	fmt.Print("\033[H\033[2J")
-	brd := fmt.Sprint("+" + strings.Repeat("-", tfe.length))
+	border := fmt.Sprint("+" + strings.Repeat("-", tfe.length))
 	for i := 0; i < tfe.n; i++ {
-		fmt.Println(strings.Repeat(brd, tfe.m) + "+")
+		fmt.Println(strings.Repeat(border, tfe.m) + "+")
 		for j := 0; j < tfe.m; j++ {
-			if (tfe.box)[i][j] == 0 {
+			if tfe.box[i][j] == 0 {
 				fmt.Printf("|%6s", "")
 			} else {
-				if (tfe.box)[i][j] > tfe.score {
-					tfe.score = (tfe.box)[i][j]
+				if tfe.box[i][j] > tfe.score {
+					tfe.score = tfe.box[i][j]
 				}
-				fmt.Print("|" + center(fmt.Sprintf("%d", (tfe.box)[i][j]), tfe.length))
+				fmt.Print("|" + center(fmt.Sprintf("%d", tfe.box[i][j]), tfe.length))
 			}
 		}
 		fmt.Printf("|\n")
 	}
-	fmt.Println(strings.Repeat(brd, tfe.m) + "*")
+	fmt.Println(strings.Repeat(border, tfe.m) + "*")
 	fmt.Println("|" + center("Score: "+strconv.Itoa(tfe.score), tfe.m*(tfe.length+1)-1) + "|")
 }
 
 func (tfe *TwentyFortyEight) initBox() {
 	tfe.box = make([][]int, tfe.n)
 	for i := range tfe.box {
-		(tfe.box)[i] = make([]int, tfe.m)
+		tfe.box[i] = make([]int, tfe.m)
 	}
 }
 
