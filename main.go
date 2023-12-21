@@ -139,7 +139,7 @@ func center(s string, w int) string {
 func (tfe *TwentyFortyEight) showBox() {
 	tfe.score = 0
 	fmt.Print("\033[H\033[2J")
-	brd := fmt.Sprint("+" + strings.Repeat("-", 6))
+	brd := fmt.Sprint("+" + strings.Repeat("-", tfe.length))
 	for i := 0; i < tfe.n; i++ {
 		fmt.Println(strings.Repeat(brd, tfe.m) + "+")
 		for j := 0; j < tfe.m; j++ {
@@ -149,13 +149,13 @@ func (tfe *TwentyFortyEight) showBox() {
 				if (tfe.box)[i][j] > tfe.score {
 					tfe.score = (tfe.box)[i][j]
 				}
-				fmt.Print("|" + center(fmt.Sprintf("%d", (tfe.box)[i][j]), 6))
+				fmt.Print("|" + center(fmt.Sprintf("%d", (tfe.box)[i][j]), tfe.length))
 			}
 		}
 		fmt.Printf("|\n")
 	}
 	fmt.Println(strings.Repeat(brd, tfe.m) + "*")
-	fmt.Println("|" + center("Score: "+strconv.Itoa(tfe.score), tfe.m*7-1) + "|")
+	fmt.Println("|" + center("Score: "+strconv.Itoa(tfe.score), tfe.m*(tfe.length+1)-1) + "|")
 }
 
 func (tfe *TwentyFortyEight) initBox() {
@@ -196,7 +196,7 @@ func (tfe *TwentyFortyEight) play2048() {
 		tfe.showBox()
 
 		if tfe.gameover {
-			fmt.Println("|" + center("-= Game Over =-", tfe.m*7-1) + "|")
+			fmt.Println("|" + center("-= Game Over =-", tfe.m*(tfe.length+1)-1) + "|")
 			return
 		}
 
