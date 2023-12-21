@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"strconv"
 	"strings"
 	"time"
 
@@ -29,7 +28,7 @@ type TwentyFortyEight struct {
 }
 
 func (tfe *TwentyFortyEight) Init() {
-	tfe.length = 6
+	tfe.length = 5
 	tfe.shifts = make(map[int]bool)
 }
 
@@ -85,6 +84,7 @@ func (tfe *TwentyFortyEight) shiftLine(ind int) {
 			flag = false
 		} else if tfe.box[ind][i] != 0 && temp[j] != 0 {
 			flag = true
+			tfe.score += tfe.box[ind][i] * 2
 		}
 		temp[j] += tfe.box[ind][i]
 		if tfe.box[ind][j] != temp[j] && !tfe.shiftState {
@@ -143,18 +143,18 @@ func (tfe *TwentyFortyEight) showBox() {
 		fmt.Println(strings.Repeat(border, tfe.m) + "+")
 		for j := 0; j < tfe.m; j++ {
 			if tfe.box[i][j] == 0 {
-				fmt.Printf("|%6s", "")
+				fmt.Print("|" + center("", tfe.length))
 			} else {
-				if tfe.box[i][j] > tfe.score {
-					tfe.score = tfe.box[i][j]
-				}
-				fmt.Print("|" + center(fmt.Sprintf("%d", tfe.box[i][j]), tfe.length))
+				number := fmt.Sprintf("%d", tfe.box[i][j])
+				fmt.Printf("|" + center(number, tfe.length))
 			}
 		}
-		fmt.Printf("|\n")
+		fmt.Print("|\n")
 	}
 	fmt.Println(strings.Repeat(border, tfe.m) + "*")
-	fmt.Println("|" + center("Score: "+strconv.Itoa(tfe.score), tfe.m*(tfe.length+1)-1) + "|")
+
+	numScore := fmt.Sprintf("Score: %d", tfe.score)
+	fmt.Println("|" + center(numScore, tfe.m*(tfe.length+1)-1) + "|")
 }
 
 func (tfe *TwentyFortyEight) initBox() {
@@ -165,7 +165,9 @@ func (tfe *TwentyFortyEight) initBox() {
 }
 
 func (tfe *TwentyFortyEight) play2048() {
-	fmt.Println("\033[H\033[2JВведите размер поля в формате: Х У, например, 4 4:")
+	fmt.Println("\033[H\033[2J")
+	fmt.Println("Введите размер поля в формате: Х У, например, 4 4:")
+
 	_, err := fmt.Scan(&tfe.n, &tfe.m)
 	if err != nil {
 		fmt.Println("Возникла ошибка")
@@ -190,13 +192,16 @@ func (tfe *TwentyFortyEight) play2048() {
 		if event.Err != nil {
 			panic(event.Err)
 		}
-		tfe.direction = int(event.Key)
-		tfe.shiftLines()
-		tfe.showBox()
+		switch int(event.Key) {
+		case right, left, down, up:
+			tfe.direction = int(event.Key)
+			tfe.shiftLines()
+			tfe.showBox()
 
-		if tfe.gameover {
-			fmt.Println("|" + center("-= Game Over =-", tfe.m*(tfe.length+1)-1) + "|")
-			return
+			if tfe.gameover {
+				fmt.Println("|" + center("-= Game Over =-", tfe.m*(tfe.length+1)-1) + "|")
+				return
+			}
 		}
 
 		if event.Key == keyboard.KeyEsc {
