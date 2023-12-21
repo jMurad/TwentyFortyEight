@@ -34,12 +34,11 @@ func (tfe *TwentyFortyEight) Init() {
 }
 
 func (tfe *TwentyFortyEight) genRandValue() int {
+	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
 	res := 2
-	rnd := rand.Intn(10)
-	if rnd == 4 {
+	genNumber := rnd.Intn(10)
+	if genNumber == 4 {
 		res = 4
-	} else {
-		res = 2
 	}
 	return res
 }
@@ -67,7 +66,8 @@ func (tfe *TwentyFortyEight) generate() {
 }
 
 func (tfe *TwentyFortyEight) reverse(ind int) {
-	if tfe.direction == right || tfe.direction == down {
+	switch tfe.direction {
+	case right, down:
 		for i := tfe.m/2 - 1; i >= 0; i-- {
 			opp := tfe.m - 1 - i
 			tfe.box[ind][i], tfe.box[ind][opp] = tfe.box[ind][opp], tfe.box[ind][i]
@@ -109,7 +109,6 @@ func (tfe *TwentyFortyEight) transposition() {
 		tfe.box = tempbox
 	case right, left:
 		return
-
 	}
 }
 
