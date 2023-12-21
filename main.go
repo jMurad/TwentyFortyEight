@@ -10,9 +10,29 @@ import (
 	"github.com/eiannone/keyboard"
 )
 
-var mp map[int]bool = map[int]bool{}
+const (
+	right = iota + 65514
+	left
+	down
+	up
+)
 
-func genRandValue() int {
+type TwentyFortyEight struct {
+	n, m      int
+	box       [][]int
+	direction int
+	score     int
+	length    int
+	gameover  bool
+	shifts    map[int]bool
+}
+
+func (tfe *TwentyFortyEight) Init() {
+	tfe.length = 6
+	tfe.shifts = make(map[int]bool)
+}
+
+func (tfe *TwentyFortyEight) genRandValue() int {
 	res := 2
 	rnd := rand.Intn(10)
 	if rnd == 4 {
@@ -23,30 +43,30 @@ func genRandValue() int {
 	return res
 }
 
-func generate(box *[][]int, dir int) {
-	n, m, ni, mi := len(*box), len((*box)[0]), 0, 0
+func (tfe *TwentyFortyEight) generate() {
+	ni, mi := 0, 0
 	save := make(map[int]int)
 	for {
 		for save[mi] == ni {
 			rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
-			ni = rnd.Intn(n)
-			if dir == 65514 || dir == 65516 {
-				mi = rnd.Intn(m/2 + m%2)
+			ni = rnd.Intn(tfe.n)
+			if tfe.direction == right || tfe.direction == down {
+				mi = rnd.Intn(tfe.m/2 + tfe.m%2)
 			} else {
-				mi = m/2 + rnd.Intn(m/2+m%2)
+				mi = tfe.m/2 + rnd.Intn(tfe.m/2+tfe.m%2)
 			}
 		}
 		save[mi] = ni
 
-		if (*box)[ni][mi] == 0 {
-			(*box)[ni][mi] = genRandValue()
+		if (tfe.box)[ni][mi] == 0 {
+			(tfe.box)[ni][mi] = tfe.genRandValue()
 			break
 		}
 	}
 }
 
-func reverse(line *[]int, dir int) {
-	if dir == 65514 || dir == 65516 {
+func (tfe *TwentyFortyEight) reverse(line *[]int) {
+	if tfe.direction == right || tfe.direction == down {
 		for i := len(*line)/2 - 1; i >= 0; i-- {
 			opp := len(*line) - 1 - i
 			(*line)[i], (*line)[opp] = (*line)[opp], (*line)[i]
@@ -54,10 +74,10 @@ func reverse(line *[]int, dir int) {
 	}
 }
 
-func shiftLine(line *[]int, dir int) bool {
+func (tfe *TwentyFortyEight) shiftLine(line *[]int) bool {
 	var state, flag bool
-	temp := make([]int, len(*line))
-	reverse(line, dir)
+	temp := make([]int, tfe.m)
+	tfe.reverse(line)
 	for j, i := 0, 0; i < len(*line); i++ {
 		if (*line)[i] != temp[j] && (*line)[i] != 0 && temp[j] != 0 || flag {
 			j++
@@ -71,93 +91,87 @@ func shiftLine(line *[]int, dir int) bool {
 		}
 	}
 	*line = temp
-	reverse(line, dir)
+	tfe.reverse(line)
 	return state
 }
 
-func shiftLines(box *[][]int, dir int) (bool, bool) {
+func (tfe *TwentyFortyEight) transposition() {
+	if tfe.direction < up {
+		return
+	}
+	tempbox := make([][]int, tfe.m)
+
+	for i := 0; i < tfe.m; i++ {
+		tempbox[i] = make([]int, tfe.n)
+		for j := 0; j < tfe.n; j++ {
+			tempbox[i][j] = (tfe.box)[j][i]
+		}
+	}
+	tfe.box = tempbox
+}
+
+func (tfe *TwentyFortyEight) shiftLines() {
 	var state, sl bool
-	transposition(box, dir)
-	for i := range *box {
-		sl = shiftLine(&(*box)[i], dir)
+	tfe.transposition()
+	for i := range tfe.box {
+		sl = tfe.shiftLine(&(tfe.box)[i])
 		state = state || sl
 	}
 	if state {
-		generate(box, dir)
-		mp = make(map[int]bool)
+		tfe.generate()
+		tfe.shifts = make(map[int]bool)
 	} else {
-		mp[dir] = state
+		tfe.shifts[tfe.direction] = state
 	}
-	transposition(box, dir)
-	if len(mp) == 4 {
-		return state, false
+	tfe.transposition()
+	if len(tfe.shifts) == 4 {
+		tfe.gameover = true
 	} else {
-		return state, true
+		tfe.gameover = false
 	}
-
-}
-
-func transposition(box *[][]int, dir int) {
-	if dir < 65516 {
-		return
-	}
-	n, m := len(*box), len((*box)[0])
-	tempbox := make([][]int, m)
-
-	for i := 0; i < m; i++ {
-		tempbox[i] = make([]int, n)
-		for j := 0; j < n; j++ {
-			tempbox[i][j] = (*box)[j][i]
-		}
-	}
-	*box = tempbox
 }
 
 func center(s string, w int) string {
 	return fmt.Sprintf("%*s", -w, fmt.Sprintf("%*s", (w+len(s))/2, s))
 }
 
-func showBox(box *[][]int) {
-	max := 0
-	ln := len(*box)
-	lm := len((*box)[0])
+func (tfe *TwentyFortyEight) showBox() {
+	tfe.score = 0
 	fmt.Print("\033[H\033[2J")
-	for i := 0; i < ln; i++ {
-		fmt.Println(strings.Repeat("+------", lm) + "+")
-		for j := 0; j < lm; j++ {
-			if (*box)[i][j] == 0 {
+	brd := fmt.Sprint("+" + strings.Repeat("-", 6))
+	for i := 0; i < tfe.n; i++ {
+		fmt.Println(strings.Repeat(brd, tfe.m) + "+")
+		for j := 0; j < tfe.m; j++ {
+			if (tfe.box)[i][j] == 0 {
 				fmt.Printf("|%6s", "")
 			} else {
-				if (*box)[i][j] > max {
-					max = (*box)[i][j]
+				if (tfe.box)[i][j] > tfe.score {
+					tfe.score = (tfe.box)[i][j]
 				}
-				fmt.Print("|" + center(fmt.Sprintf("%d", (*box)[i][j]), 6))
+				fmt.Print("|" + center(fmt.Sprintf("%d", (tfe.box)[i][j]), 6))
 			}
 		}
 		fmt.Printf("|\n")
 	}
-	fmt.Println(strings.Repeat("+------", lm) + "*")
-	fmt.Println("|" + center("Score: "+strconv.Itoa(max), lm*7-1) + "|")
+	fmt.Println(strings.Repeat(brd, tfe.m) + "*")
+	fmt.Println("|" + center("Score: "+strconv.Itoa(tfe.score), tfe.m*7-1) + "|")
 }
 
-func initBox(n, m int) *[][]int {
-	box := make([][]int, n)
-	for i := range box {
-		box[i] = make([]int, m)
+func (tfe *TwentyFortyEight) initBox() {
+	tfe.box = make([][]int, tfe.n)
+	for i := range tfe.box {
+		(tfe.box)[i] = make([]int, tfe.m)
 	}
-	return &box
 }
 
-func play2048() {
-	fmt.Print("\033[H\033[2J")
-	fmt.Println("Введите размер поля в формате: Х У, например, 4 4:")
-	var n, m int
-	_, err := fmt.Scan(&n, &m)
+func (tfe *TwentyFortyEight) play2048() {
+	fmt.Println("\033[H\033[2JВведите размер поля в формате: Х У, например, 4 4:")
+	_, err := fmt.Scan(&tfe.n, &tfe.m)
 	if err != nil {
 		fmt.Println("Возникла ошибка")
 		return
 	}
-	var gameover bool
+
 	keysEvents, err := keyboard.GetKeys(10)
 	if err != nil {
 		panic(err)
@@ -166,22 +180,22 @@ func play2048() {
 		_ = keyboard.Close()
 	}()
 
-	box := initBox(n, m)
-	generate(box, 0)
-	showBox(box)
+	tfe.initBox()
+
+	tfe.generate()
+	tfe.showBox()
 
 	for {
 		event := <-keysEvents
 		if event.Err != nil {
 			panic(event.Err)
 		}
+		tfe.direction = int(event.Key)
+		tfe.shiftLines()
+		tfe.showBox()
 
-		_, gameover = shiftLines(box, int(event.Key))
-		showBox(box)
-
-		if !gameover {
-			lm := len((*box)[0])
-			fmt.Println("|" + center("-= Game Over =-", lm*7-1) + "|")
+		if tfe.gameover {
+			fmt.Println("|" + center("-= Game Over =-", tfe.m*7-1) + "|")
 			return
 		}
 
@@ -192,5 +206,7 @@ func play2048() {
 }
 
 func main() {
-	play2048()
+	tfe := TwentyFortyEight{}
+	tfe.Init()
+	tfe.play2048()
 }
