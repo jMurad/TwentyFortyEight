@@ -18,13 +18,14 @@ const (
 )
 
 type TwentyFortyEight struct {
-	n, m      int
-	box       [][]int
-	direction int
-	score     int
-	length    int
-	gameover  bool
-	shifts    map[int]bool
+	n, m       int
+	box        [][]int
+	direction  int
+	score      int
+	length     int
+	gameover   bool
+	shifts     map[int]bool
+	shiftState bool
 }
 
 func (tfe *TwentyFortyEight) Init() {
@@ -74,11 +75,11 @@ func (tfe *TwentyFortyEight) reverse(line *[]int) {
 	}
 }
 
-func (tfe *TwentyFortyEight) shiftLine(line *[]int) bool {
-	var state, flag bool
+func (tfe *TwentyFortyEight) shiftLine(line *[]int) {
+	var flag bool
 	temp := make([]int, tfe.m)
 	tfe.reverse(line)
-	for j, i := 0, 0; i < len(*line); i++ {
+	for j, i := 0, 0; i < tfe.m; i++ {
 		if (*line)[i] != temp[j] && (*line)[i] != 0 && temp[j] != 0 || flag {
 			j++
 			flag = false
@@ -86,17 +87,16 @@ func (tfe *TwentyFortyEight) shiftLine(line *[]int) bool {
 			flag = true
 		}
 		temp[j] += (*line)[i]
-		if (*line)[j] != temp[j] && !state {
-			state = true
+		if (*line)[j] != temp[j] && !tfe.shiftState {
+			tfe.shiftState = true
 		}
 	}
 	*line = temp
 	tfe.reverse(line)
-	return state
 }
 
 func (tfe *TwentyFortyEight) transposition() {
-	if tfe.direction < up {
+	if tfe.direction < down {
 		return
 	}
 	tempbox := make([][]int, tfe.m)
@@ -111,17 +111,16 @@ func (tfe *TwentyFortyEight) transposition() {
 }
 
 func (tfe *TwentyFortyEight) shiftLines() {
-	var state, sl bool
+	tfe.shiftState = false
 	tfe.transposition()
 	for i := range tfe.box {
-		sl = tfe.shiftLine(&(tfe.box)[i])
-		state = state || sl
+		tfe.shiftLine(&tfe.box[i])
 	}
-	if state {
+	if tfe.shiftState {
 		tfe.generate()
 		tfe.shifts = make(map[int]bool)
 	} else {
-		tfe.shifts[tfe.direction] = state
+		tfe.shifts[tfe.direction] = tfe.shiftState
 	}
 	tfe.transposition()
 	if len(tfe.shifts) == 4 {
