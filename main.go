@@ -66,55 +66,58 @@ func (tfe *TwentyFortyEight) generate() {
 	}
 }
 
-func (tfe *TwentyFortyEight) reverse(line *[]int) {
+func (tfe *TwentyFortyEight) reverse(ind int) {
 	if tfe.direction == right || tfe.direction == down {
-		for i := len(*line)/2 - 1; i >= 0; i-- {
-			opp := len(*line) - 1 - i
-			(*line)[i], (*line)[opp] = (*line)[opp], (*line)[i]
+		for i := tfe.m/2 - 1; i >= 0; i-- {
+			opp := tfe.m - 1 - i
+			tfe.box[ind][i], tfe.box[ind][opp] = tfe.box[ind][opp], tfe.box[ind][i]
 		}
 	}
 }
 
-func (tfe *TwentyFortyEight) shiftLine(line *[]int) {
+func (tfe *TwentyFortyEight) shiftLine(ind int) {
 	var flag bool
 	temp := make([]int, tfe.m)
-	tfe.reverse(line)
+	tfe.reverse(ind)
 	for j, i := 0, 0; i < tfe.m; i++ {
-		if (*line)[i] != temp[j] && (*line)[i] != 0 && temp[j] != 0 || flag {
+		if tfe.box[ind][i] != temp[j] && tfe.box[ind][i] != 0 && temp[j] != 0 || flag {
 			j++
 			flag = false
-		} else if (*line)[i] != 0 && temp[j] != 0 {
+		} else if tfe.box[ind][i] != 0 && temp[j] != 0 {
 			flag = true
 		}
-		temp[j] += (*line)[i]
-		if (*line)[j] != temp[j] && !tfe.shiftState {
+		temp[j] += tfe.box[ind][i]
+		if tfe.box[ind][j] != temp[j] && !tfe.shiftState {
 			tfe.shiftState = true
 		}
 	}
-	*line = temp
-	tfe.reverse(line)
+	tfe.box[ind] = temp
+	tfe.reverse(ind)
 }
 
 func (tfe *TwentyFortyEight) transposition() {
-	if tfe.direction < down {
-		return
-	}
-	tempbox := make([][]int, tfe.m)
+	switch tfe.direction {
+	case down, up:
+		tempbox := make([][]int, tfe.m)
 
-	for i := 0; i < tfe.m; i++ {
-		tempbox[i] = make([]int, tfe.n)
-		for j := 0; j < tfe.n; j++ {
-			tempbox[i][j] = (tfe.box)[j][i]
+		for i := 0; i < tfe.m; i++ {
+			tempbox[i] = make([]int, tfe.n)
+			for j := 0; j < tfe.n; j++ {
+				tempbox[i][j] = (tfe.box)[j][i]
+			}
 		}
+		tfe.box = tempbox
+	case right, left:
+		return
+
 	}
-	tfe.box = tempbox
 }
 
 func (tfe *TwentyFortyEight) shiftLines() {
 	tfe.shiftState = false
 	tfe.transposition()
 	for i := range tfe.box {
-		tfe.shiftLine(&tfe.box[i])
+		tfe.shiftLine(i)
 	}
 	if tfe.shiftState {
 		tfe.generate()
