@@ -187,9 +187,9 @@ func (tfe *TwentyFortyEight) play2048() {
 		if event.Err != nil {
 			panic(event.Err)
 		}
-		switch int(event.Key) {
+		switch key := int(event.Key); key {
 		case right, left, down, up:
-			tfe.direction = int(event.Key)
+			tfe.direction = key
 			tfe.shiftLines()
 			tfe.showBox()
 
@@ -197,9 +197,7 @@ func (tfe *TwentyFortyEight) play2048() {
 				fmt.Println("|" + center("-= Game Over =-", tfe.m*(tfe.length+1)-1) + "|")
 				return
 			}
-		}
-
-		if event.Key == keyboard.KeyEsc {
+		case int(keyboard.KeyEsc):
 			return
 		}
 	}
