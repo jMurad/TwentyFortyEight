@@ -167,6 +167,8 @@ func (tfe *TwentyFortyEight) initBox() {
 }
 
 func (tfe *TwentyFortyEight) registration() {
+	fmt.Println("\033[H\033[2J")
+
 	fmt.Print("Введие ваше имя: ")
 	_, err := fmt.Scanf("%s", &tfe.name)
 	if err != nil {
@@ -183,8 +185,6 @@ func (tfe *TwentyFortyEight) registration() {
 }
 
 func (tfe *TwentyFortyEight) play2048() {
-	fmt.Println("\033[H\033[2J")
-
 	keysEvents, err := keyboard.GetKeys(10)
 	if err != nil {
 		panic(err)
@@ -238,6 +238,7 @@ func repeat(s string, n int) (res string) {
 func main() {
 	tfe := TwentyFortyEight{}
 	tfe.Init()
+	tfe.registration()
 	tfe.play2048()
 
 }
