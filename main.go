@@ -19,11 +19,18 @@ type TwentyFortyEight struct {
 	n, m       int
 	box        [][]int
 	direction  int
-	score      int
 	length     int
 	gameover   bool
 	shifts     map[int]bool
 	shiftState bool
+	Player
+}
+type Player struct {
+	name    string
+	score   int
+	level   int
+	sizeBox string
+	rating  int
 }
 
 func (tfe *TwentyFortyEight) Init() {
@@ -159,15 +166,24 @@ func (tfe *TwentyFortyEight) initBox() {
 	}
 }
 
-func (tfe *TwentyFortyEight) play2048() {
-	fmt.Println("\033[H\033[2J")
-	fmt.Println("Введите размер поля в формате: Х У, например, 4 4:")
-
-	_, err := fmt.Scan(&tfe.n, &tfe.m)
+func (tfe *TwentyFortyEight) registration() {
+	fmt.Print("Введие ваше имя: ")
+	_, err := fmt.Scanf("%s", &tfe.name)
 	if err != nil {
 		fmt.Println("Возникла ошибка")
 		return
 	}
+
+	fmt.Print("Введите размер поля в формате Х У:")
+	_, err = fmt.Scan(&tfe.n, &tfe.m)
+	if err != nil {
+		fmt.Println("Возникла ошибка")
+		return
+	}
+}
+
+func (tfe *TwentyFortyEight) play2048() {
+	fmt.Println("\033[H\033[2J")
 
 	keysEvents, err := keyboard.GetKeys(10)
 	if err != nil {
@@ -223,4 +239,5 @@ func main() {
 	tfe := TwentyFortyEight{}
 	tfe.Init()
 	tfe.play2048()
+
 }
