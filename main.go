@@ -182,8 +182,7 @@ func (tfe *TwentyFortyEight) play2048() {
 	tfe.generate()
 	tfe.showBox()
 
-	for {
-		event := <-keysEvents
+	for event := range keysEvents {
 		if event.Err != nil {
 			panic(event.Err)
 		}
@@ -192,12 +191,11 @@ func (tfe *TwentyFortyEight) play2048() {
 			tfe.direction = key
 			tfe.shiftLines()
 			tfe.showBox()
-
-			if tfe.gameover {
-				fmt.Println("|" + center("-= Game Over =-", tfe.m*(tfe.length+1)-1) + "|")
-				return
-			}
 		case int(keyboard.KeyEsc):
+			return
+		}
+		if tfe.gameover {
+			fmt.Println("|" + center("-= Game Over =-", tfe.m*(tfe.length+1)-1) + "|")
 			return
 		}
 	}
