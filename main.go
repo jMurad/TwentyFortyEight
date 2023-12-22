@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"math/rand"
-	"strings"
 	"time"
 
 	"github.com/eiannone/keyboard"
@@ -32,14 +31,14 @@ func (tfe *TwentyFortyEight) Init() {
 	tfe.shifts = make(map[int]bool)
 }
 
-func (tfe *TwentyFortyEight) genRandValue() int {
+func (tfe *TwentyFortyEight) genRandValue() (res int) {
 	rnd := rand.New(rand.NewSource(time.Now().UnixNano()))
-	res := 2
+	res = 2
 	genNumber := rnd.Intn(10)
 	if genNumber == 4 {
 		res = 4
 	}
-	return res
+	return
 }
 
 func (tfe *TwentyFortyEight) generate() {
@@ -132,15 +131,11 @@ func (tfe *TwentyFortyEight) shiftLines() {
 	}
 }
 
-func center(s string, w int) string {
-	return fmt.Sprintf("%*s", -w, fmt.Sprintf("%*s", (w+len(s))/2, s))
-}
-
 func (tfe *TwentyFortyEight) showBox() {
 	fmt.Print("\033[H\033[2J")
-	border := fmt.Sprint("+" + strings.Repeat("-", tfe.length))
+	border := fmt.Sprint("+" + repeat("-", tfe.length))
 	for i := 0; i < tfe.n; i++ {
-		fmt.Println(strings.Repeat(border, tfe.m) + "+")
+		fmt.Println(repeat(border, tfe.m) + "+")
 		for j := 0; j < tfe.m; j++ {
 			if tfe.box[i][j] == 0 {
 				fmt.Print("|" + center("", tfe.length))
@@ -151,7 +146,7 @@ func (tfe *TwentyFortyEight) showBox() {
 		}
 		fmt.Print("|\n")
 	}
-	fmt.Println(strings.Repeat(border, tfe.m) + "*")
+	fmt.Println(repeat(border, tfe.m) + "*")
 
 	numScore := fmt.Sprintf("Score: %d", tfe.score)
 	fmt.Println("|" + center(numScore, tfe.m*(tfe.length+1)-1) + "|")
@@ -208,6 +203,24 @@ func (tfe *TwentyFortyEight) play2048() {
 			return
 		}
 	}
+}
+
+func center(s string, w int) string {
+	return fmt.Sprintf("%*s", -w, fmt.Sprintf("%*s", (w+len(s))/2, s))
+}
+
+func repeat(s string, n int) (res string) {
+	switch n {
+	case 0:
+		return ""
+	case 1:
+		return s
+	}
+
+	for i := 0; i < n; i++ {
+		res += s
+	}
+	return
 }
 
 func main() {
