@@ -23,19 +23,20 @@ type TwentyFortyEight struct {
 	gameover   bool
 	shifts     map[int]bool
 	shiftState bool
-	Player
+	Players
+	CoreDB
 }
-type Player struct {
+type Players struct {
 	name    string
 	score   int
 	level   int
-	sizeBox string
-	rating  int
+	sizebox string
 }
 
 func (tfe *TwentyFortyEight) Init() {
 	tfe.length = 5
 	tfe.shifts = make(map[int]bool)
+	tfe.CoreDB.DBinit()
 }
 
 func (tfe *TwentyFortyEight) genRandValue() (res int) {
@@ -147,6 +148,9 @@ func (tfe *TwentyFortyEight) showBox() {
 			if tfe.box[i][j] == 0 {
 				fmt.Print("|" + center("", tfe.length))
 			} else {
+				if tfe.box[i][j] > tfe.level {
+					tfe.level = tfe.box[i][j]
+				}
 				number := fmt.Sprintf("%d", tfe.box[i][j])
 				fmt.Printf("|" + center(number, tfe.length))
 			}
@@ -156,7 +160,9 @@ func (tfe *TwentyFortyEight) showBox() {
 	fmt.Println(repeat(border, tfe.m) + "*")
 
 	numScore := fmt.Sprintf("Score: %d", tfe.score)
+	numLevel := fmt.Sprintf("Level: %d", tfe.level)
 	fmt.Println("|" + center(numScore, tfe.m*(tfe.length+1)-1) + "|")
+	fmt.Println("|" + center(numLevel, tfe.m*(tfe.length+1)-1) + "|")
 }
 
 func (tfe *TwentyFortyEight) initBox() {
@@ -182,7 +188,19 @@ func (tfe *TwentyFortyEight) registration() {
 		fmt.Println("Возникла ошибка")
 		return
 	}
+	tfe.sizebox = fmt.Sprintf("%dx%d", tfe.n, tfe.m)
 }
+
+// func (tfe *TwentyFortyEight) showPlayer() {
+// 	var err error
+// 	tfe.Players, err = tfe.CoreDB.GetPlayer(tfe.name)
+// 	if err != nil {
+// 		fmt.Printf("Your\tScores: %d\n\tLevel: %d\n\tSize box: %s", tfe.score, tfe.level, tfe.sizebox)
+// 		tfe.CoreDB.AddPlayer(&tfe.Players)
+// 	} else {
+// 		// tfe.CoreDB.AddPlayer()
+// 	}
+// }
 
 func (tfe *TwentyFortyEight) play2048() {
 	keysEvents, err := keyboard.GetKeys(10)
@@ -212,6 +230,7 @@ func (tfe *TwentyFortyEight) play2048() {
 		}
 		if tfe.gameover {
 			fmt.Println("|" + center("-= Game Over =-", tfe.m*(tfe.length+1)-1) + "|")
+
 			return
 		}
 	}
