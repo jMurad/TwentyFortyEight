@@ -25,6 +25,7 @@ type TwentyFortyEight struct {
 	shiftState bool
 	Players
 	CoreDB
+	dur time.Duration
 }
 type Players struct {
 	name    string
@@ -122,9 +123,12 @@ func (tfe *TwentyFortyEight) transposition() {
 func (tfe *TwentyFortyEight) shiftLines() {
 	tfe.shiftState = false
 	tfe.transposition()
+	start := time.Now()
 	for i := range tfe.box {
 		tfe.shiftLine(i)
 	}
+	// wg.Wait()
+	tfe.dur = time.Since(start)
 	if tfe.shiftState {
 		tfe.generate()
 		tfe.shifts = make(map[int]bool)
@@ -163,6 +167,8 @@ func (tfe *TwentyFortyEight) showBox() {
 	numLevel := fmt.Sprintf("Level: %d", tfe.level)
 	fmt.Println("|" + center(numScore, tfe.m*(tfe.length+1)-1) + "|")
 	fmt.Println("|" + center(numLevel, tfe.m*(tfe.length+1)-1) + "|")
+	dur := fmt.Sprintf("Dur: %s", tfe.dur.String())
+	fmt.Println("|" + center(dur, tfe.m*(tfe.length+1)-1) + "|")
 }
 
 func (tfe *TwentyFortyEight) initBox() {
@@ -191,16 +197,27 @@ func (tfe *TwentyFortyEight) registration() {
 	tfe.sizebox = fmt.Sprintf("%dx%d", tfe.n, tfe.m)
 }
 
-// func (tfe *TwentyFortyEight) showPlayer() {
-// 	var err error
-// 	tfe.Players, err = tfe.CoreDB.GetPlayer(tfe.name)
-// 	if err != nil {
-// 		fmt.Printf("Your\tScores: %d\n\tLevel: %d\n\tSize box: %s", tfe.score, tfe.level, tfe.sizebox)
-// 		tfe.CoreDB.AddPlayer(&tfe.Players)
-// 	} else {
-// 		// tfe.CoreDB.AddPlayer()
-// 	}
-// }
+func (tfe *TwentyFortyEight) showPlayer() {
+	tempPlayer := &Players{tfe.name, 0, 0, tfe.sizebox}
+	err := tfe.CoreDB.GetPlayer(tempPlayer)
+	if err != nil {
+		tfe.CoreDB.AddPlayer(&tfe.Players)
+	} else {
+		if tfe.Players.score > tempPlayer.score {
+			tfe.CoreDB.UpdatePlayer(&tfe.Players)
+		}
+	}
+	fmt.Printf("\nBefore\t\tScores: %d\tLevel: %d\tSize box: %s\n", tfe.score, tfe.level, tfe.sizebox)
+	plrs, err := tfe.CoreDB.GetBestPlayers(tfe.sizebox)
+	if err != nil {
+		fmt.Println("No Players")
+		return
+	}
+	fmt.Println("\nName\t\tScore\t\tLevel\t\tSize Box")
+	for _, v := range plrs {
+		fmt.Printf("%s\t\t%d\t\t%d\t\t%s\n", v.name, v.score, v.level, v.sizebox)
+	}
+}
 
 func (tfe *TwentyFortyEight) play2048() {
 	keysEvents, err := keyboard.GetKeys(10)
@@ -230,7 +247,7 @@ func (tfe *TwentyFortyEight) play2048() {
 		}
 		if tfe.gameover {
 			fmt.Println("|" + center("-= Game Over =-", tfe.m*(tfe.length+1)-1) + "|")
-
+			tfe.showPlayer()
 			return
 		}
 	}
@@ -259,5 +276,4 @@ func main() {
 	tfe.Init()
 	tfe.registration()
 	tfe.play2048()
-
 }
