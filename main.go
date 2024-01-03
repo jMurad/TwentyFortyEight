@@ -115,8 +115,6 @@ func (tfe *TwentyFortyEight) transposition() {
 			}
 		}
 		tfe.box = tempbox
-	case right, left:
-		return
 	}
 }
 
@@ -127,7 +125,6 @@ func (tfe *TwentyFortyEight) shiftLines() {
 	for i := range tfe.box {
 		tfe.shiftLine(i)
 	}
-	// wg.Wait()
 	tfe.dur = time.Since(start)
 	if tfe.shiftState {
 		tfe.generate()
